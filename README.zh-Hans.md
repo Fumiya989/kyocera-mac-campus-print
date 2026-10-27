@@ -1,6 +1,6 @@
 # 在新版 macOS 上使用京瓷 ECOSYS P8060cdn 打印（CUPS 修复）
 
-[English](README.md) | [日本語](README.ja.md) | **中文**
+[日本語](README.md) | [繁體中文](README.zh-Hant.md) | **简体中文** | [English](README.en.md)
 
 在 Apple Silicon 的新版 macOS 上，向京瓷 ECOSYS P8060cdn（例如校园的 BYOD 打印队列）打印时，文件打不出来。本仓库说明了原因和解决办法，并提供一个设置脚本。**不需要任何第三方驱动**，只用已经安装好的京瓷 PPD 和 macOS 自带的 CUPS 滤镜。
 
