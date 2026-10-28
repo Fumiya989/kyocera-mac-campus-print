@@ -35,6 +35,7 @@ P8060cdn 本身就能辨識 **PostScript**，而 macOS 的 CUPS 內建完整的 
 1. **從 PPD 的副本中刪除 `*cupsFilter` / `*cupsPreFilter` 這兩行。** CUPS 就會改用內建的濾鏡。PPD 的其餘部分都保留，所以列印選項照樣能用：色彩模式、雙面列印等以 PostScript 的 `setpagedevice` 寫入，PJL 工作標頭來自 PPD 的 JCL 部分。
 2. **讓學號成為工作的提交者。** 列印伺服器依使用者名稱把工作歸到帳號下。不做這一步的話，「預覽程式」、Chrome 等 App 會用 Mac 的登入名稱提交，印表機上就看不到工作。在 `~/.cups/client.conf` 中寫入 `User <學號>` 後，這個 Mac 帳號下的所有 App 都會用這個使用者名稱提交。使用者名稱會同時寫入 LPD 控制檔（`P<使用者名稱>`）和 PJL 工作標頭（`@PJL SET USERNAME = "<使用者名稱>"`）。
 3. **預設改成黑白。** 把 `*DefaultColorModel` 改成 `Gray`。這一步可選，可以避免不小心印成彩色。
+4. **正確顯示日文檔名。**（v2）CUPS 的 `pstops` 會把 PJL 工作名稱中的非 ASCII 字元換成 `?`，所以日文檔名在印表機面板上會顯示成方塊。日本型號的印表機要求 Shift-JIS 編碼。腳本會把一個小濾鏡 [`sjis-jobname`](sjis-jobname)（shell 腳本）安裝到 `/Library/Printers/kyocera-p8060cdn-fix/`，並在 PPD 中註冊為 `*cupsFilter`。它只用 Shift-JIS 重寫 `@PJL JOB NAME` 這一行（順便去掉「Microsoft Word - 」等前綴），列印資料原樣通過。
 
 不列印也能檢查結果：
 
@@ -60,7 +61,12 @@ bash setup.sh
 - 只在京瓷濾鏡內部實作的功能（部分裝訂、部門管理、浮水印等）可能無法使用。一般列印、彩色／黑白和雙面列印都沒問題。
 - `~/.cups/client.conf` 中的使用者名稱對這個 Mac 帳號使用的**所有**印表機都有效。
 - 更新驅動程式可能會覆蓋印表機的 PPD。如果又無法列印，重新執行一次腳本即可。
-- 還原方法：從 `~/.cups/client.conf` 刪除 `User` 那一行，然後在系統設定中刪除印表機再重新加入。
+- 還原方法：從 `~/.cups/client.conf` 刪除 `User` 那一行，然後在系統設定中刪除印表機再重新加入。也可以刪除 `/Library/Printers/kyocera-p8060cdn-fix/`。
+
+## 更新紀錄
+
+- **v2.0**：修正日文檔名在印表機面板上顯示成方塊的問題（`sjis-jobname` 濾鏡）。如果你用的是 v1，請下載新版儲存庫後重新執行 `bash setup.sh`。
+- **v1.0**：第一版。拿掉京瓷濾鏡的 PPD、以學號作為使用者名稱、預設黑白。
 
 ## 授權
 

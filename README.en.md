@@ -35,6 +35,7 @@ The P8060cdn understands **PostScript** natively, and macOS's CUPS already has a
 1. **Remove the `*cupsFilter` / `*cupsPreFilter` lines** from a copy of the PPD. CUPS then falls back to its built-in filters. Everything else in the PPD stays, so print options still work: color mode, duplex and so on are injected as PostScript `setpagedevice` code, and the PJL job header comes from the PPD's JCL section.
 2. **Make the student ID the job owner.** The print server matches jobs to accounts by user name. Without this, apps such as Preview or Chrome submit jobs as the Mac login name, and the job never shows up at the printer. Writing `User <student ID>` to `~/.cups/client.conf` makes every app on this Mac account submit as that user. It ends up in both the LPD control file (`P<user>`) and the PJL header (`@PJL SET USERNAME = "<user>"`).
 3. **Default to grayscale** by changing `*DefaultColorModel` to `Gray`. Optional, but it avoids accidental color prints.
+4. **Show Japanese file names correctly.** (v2) CUPS's `pstops` replaces non-ASCII characters in the PJL job name with `?`, so Japanese file names show up as boxes on the printer panel. The Japanese-market models expect Shift-JIS. A small filter, [`sjis-jobname`](sjis-jobname) (a shell script), is installed in `/Library/Printers/kyocera-p8060cdn-fix/` and registered in the PPD as a `*cupsFilter`. It rewrites only the `@PJL JOB NAME` line in Shift-JIS (also dropping prefixes such as "Microsoft Word - ") and passes the print data through unchanged.
 
 You can check the result without printing:
 
@@ -60,7 +61,12 @@ After it finishes, quit (⌘Q) and reopen any app you print from. For color: Pri
 - Features implemented only inside Kyocera's filters (some finishing, accounting or watermark functions) may not work. Plain printing, color/grayscale and duplex do work.
 - `~/.cups/client.conf` sets the user name for **all** printers used from this Mac account.
 - A driver update can overwrite the printer's PPD. If printing breaks again, run the script again.
-- To undo: remove the `User` line from `~/.cups/client.conf`, and delete and re-add the printer in System Settings.
+- To undo: remove the `User` line from `~/.cups/client.conf`, and delete and re-add the printer in System Settings. You can also delete `/Library/Printers/kyocera-p8060cdn-fix/`.
+
+## Changelog
+
+- **v2.0**: Fix Japanese file names showing as boxes on the printer panel (`sjis-jobname` filter). If you set up v1, get the new repository and run `bash setup.sh` again.
+- **v1.0**: First version. PPD without Kyocera's filters, student ID as user name, grayscale default.
 
 ## License
 
