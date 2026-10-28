@@ -10,8 +10,6 @@ MODEL_DEFAULT="8060cdn"
 W="$HOME/kyocera-p8060cdn-fix"
 FILTER_DIR=/Library/Printers/kyocera-p8060cdn-fix
 FILTER="$FILTER_DIR/sjis-jobname"
-HERE=$(cd "$(dirname "$0")" && pwd)
-if [ ! -f "$HERE/sjis-jobname" ]; then echo "!! sjis-jobname が見つかりません。リポジトリごとダウンロードしてください。"; exit 1; fi
 
 read -r -p "学籍番号 / Student ID / 学号: " SID
 SID=$(echo "$SID" | tr -d '[:space:]')
@@ -36,6 +34,40 @@ SRC="$DIR/$NAME"
 mkdir -p "$W"; cd "$W" || exit 1
 
 echo "== [1/4] PPD を作成: $SRC"
+cat > sjis-jobname <<'FILTER_EOF'
+#!/bin/sh
+# CUPS フィルター：PJL のジョブ名を Shift-JIS に変換する
+#  - CUPS の pstops はジョブ名の ASCII 以外の文字を「?」に置き換えるため、
+#    日本語のファイル名がプリンターのパネルで文字化けする
+#  - 元のタイトル（引数 3）から @PJL JOB NAME 行を Shift-JIS で作り直す
+#  - 「Microsoft Word - 」などの前置きは外す
+#  - PJL ヘッダー以外のデータはそのまま通す
+# 引数: job-id user title copies options [file]
+
+[ -n "$6" ] && exec < "$6"
+
+title=${3#Microsoft Word - }
+title=${title#Microsoft Excel - }
+title=${title#Microsoft PowerPoint - }
+title=$(printf '%s' "$title" | tr '"' "'" | iconv -c -f UTF-8 -t SHIFT_JIS)
+
+while IFS= read -r line; do
+    case "$line" in
+        "@PJL JOB NAME"*)
+            printf '@PJL JOB NAME = "%s" DISPLAY = "%s %s %s"\n' \
+                "$title" "$1" "$2" "$title"
+            ;;
+        *)
+            printf '%s\n' "$line"
+            ;;
+    esac
+    case "$line" in
+        "@PJL ENTER LANGUAGE"*) break ;;
+    esac
+done
+
+exec cat
+FILTER_EOF
 case "$SRC" in *.gz) gunzip -c "$SRC" > orig.ppd;; *) cp "$SRC" orig.ppd;; esac
 grep -vE '^\*cups(Pre)?Filter2?:' orig.ppd \
   | sed 's/^\*DefaultColorModel: .*/*DefaultColorModel: Gray/' > p8060cdn.ppd
@@ -64,7 +96,7 @@ fi
 
 echo "== [4/4] プリンターに適用（Mac のログインパスワードを入力）"
 sudo mkdir -p "$FILTER_DIR" || exit 1
-sudo install -o root -g wheel -m 755 "$HERE/sjis-jobname" "$FILTER" || exit 1
+sudo install -o root -g wheel -m 755 "$W/sjis-jobname" "$FILTER" || exit 1
 sudo chmod 755 "$FILTER_DIR"
 sudo lpadmin -p "$PRN" -P "$W/p8060cdn.ppd" -v "$URI" -E || exit 1
 cupsfilter -e -p p8060cdn.ppd -m printer/foo -U "$SID" -t "テスト.txt" test.txt 2>/dev/null > test-sjis.prn

@@ -35,7 +35,7 @@ P8060cdn は **PostScript** をそのまま理解でき、macOS の CUPS には 
 1. **PPD のコピーから `*cupsFilter` / `*cupsPreFilter` の行を削除します。** すると CUPS は標準フィルターを使います。PPD のそれ以外の部分は残るので、印刷オプションはそのまま使えます。カラーモードや両面印刷などは PostScript の `setpagedevice` として、PJL ヘッダーは PPD の JCL 部分から挿入されます。
 2. **学籍番号をジョブの所有者にします。** 印刷サーバーはユーザー名でジョブとアカウントを結び付けます。この設定がないと、プレビューや Chrome などのアプリは Mac のログイン名で送信するため、プリンター側にジョブが表示されません。`~/.cups/client.conf` に `User <学籍番号>` と書くと、この Mac アカウントのすべてのアプリがそのユーザー名で送信します。ユーザー名は LPD の制御ファイル（`P<ユーザー>`）と PJL ヘッダー（`@PJL SET USERNAME = "<ユーザー>"`）の両方に入ります。
 3. **デフォルトを白黒にします。** `*DefaultColorModel` を `Gray` に変えます。任意ですが、うっかりカラー印刷するのを防げます。
-4. **日本語のファイル名を正しく表示します。**（v2）CUPS の `pstops` は PJL のジョブ名に含まれる ASCII 以外の文字を `?` に置き換えるため、日本語のファイル名がプリンターのパネルで「□□□」のように文字化けします。日本向けモデルは Shift-JIS を期待しています。小さなフィルター [`sjis-jobname`](sjis-jobname)（シェルスクリプト）を `/Library/Printers/kyocera-p8060cdn-fix/` に置き、PPD に `*cupsFilter` として登録します。このフィルターは `@PJL JOB NAME` 行だけを Shift-JIS で書き直し（「Microsoft Word - 」などの前置きも外します）、印刷データはそのまま通します。
+4. **日本語のファイル名を正しく表示します。**（v2）CUPS の `pstops` は PJL のジョブ名に含まれる ASCII 以外の文字を `?` に置き換えるため、日本語のファイル名がプリンターのパネルで「□□□」のように文字化けします。日本向けモデルは Shift-JIS を期待しています。小さなフィルター `sjis-jobname`（シェルスクリプト）を `/Library/Printers/kyocera-p8060cdn-fix/` に置き、PPD に `*cupsFilter` として登録します。このフィルターは `@PJL JOB NAME` 行だけを Shift-JIS で書き直し（「Microsoft Word - 」などの前置きも外します）、印刷データはそのまま通します。
 
 印刷せずに結果を確認できます。
 
