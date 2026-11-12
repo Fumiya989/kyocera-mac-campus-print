@@ -36,6 +36,7 @@ P8060cdn 本身就能辨識 **PostScript**，而 macOS 的 CUPS 內建完整的 
 2. **讓學號成為工作的提交者。** 列印伺服器依使用者名稱把工作歸到帳號下。不做這一步的話，「預覽程式」、Chrome 等 App 會用 Mac 的登入名稱提交，印表機上就看不到工作。在 `~/.cups/client.conf` 中寫入 `User <學號>` 後，這個 Mac 帳號下的所有 App 都會用這個使用者名稱提交。使用者名稱會同時寫入 LPD 控制檔（`P<使用者名稱>`）和 PJL 工作標頭（`@PJL SET USERNAME = "<使用者名稱>"`）。
 3. **預設改成黑白。** 把 `*DefaultColorModel` 改成 `Gray`。這一步可選，可以避免不小心印成彩色。
 4. **正確顯示日文檔名。**（v2）CUPS 的 `pstops` 會把 PJL 工作名稱中的非 ASCII 字元換成 `?`，所以日文檔名在印表機面板上會顯示成方塊。日本型號的印表機要求 Shift-JIS 編碼。腳本會把一個小濾鏡 `sjis-jobname`（shell 腳本）安裝到 `/Library/Printers/kyocera-p8060cdn-fix/`，並在 PPD 中註冊為 `*cupsFilter`。它只用 Shift-JIS 重寫 `@PJL JOB NAME` 這一行（順便去掉「Microsoft Word - 」等前綴），列印資料原樣通過。
+5. **恢復「印表機功能」面板。**（v2.1）PPD 中的 `*APDialogExtension` 指向京瓷的列印對話框外掛 `KfSummary.plugin`，但它只有 Intel 版本，Apple 晶片的 Mac 無法載入，列印視窗裡就沒有「印表機功能」。把這一行也刪除後，macOS 內建的「印表機功能」面板會顯示 PPD 的所有選項。
 
 不列印也能檢查結果：
 
@@ -65,6 +66,7 @@ bash setup.sh
 
 ## 更新紀錄
 
+- **v2.1**：修正 Apple 晶片的 Mac 上列印視窗沒有「印表機功能」的問題（刪除 `*APDialogExtension`）。請重新執行 `bash setup.sh`。
 - **v2.0**：修正日文檔名在印表機面板上顯示成方塊的問題（`sjis-jobname` 濾鏡）。如果你用的是 v1，請下載新版儲存庫後重新執行 `bash setup.sh`。
 - **v1.0**：第一版。拿掉京瓷濾鏡的 PPD、以學號作為使用者名稱、預設黑白。
 

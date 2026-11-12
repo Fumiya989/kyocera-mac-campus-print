@@ -69,10 +69,10 @@ done
 exec cat
 FILTER_EOF
 case "$SRC" in *.gz) gunzip -c "$SRC" > orig.ppd;; *) cp "$SRC" orig.ppd;; esac
-grep -vE '^\*cups(Pre)?Filter2?:' orig.ppd \
+grep -vE '^\*(cups(Pre)?Filter2?|APDialogExtension):' orig.ppd \
   | sed 's/^\*DefaultColorModel: .*/*DefaultColorModel: Gray/' > p8060cdn.ppd
 echo "*cupsFilter: \"application/vnd.cups-postscript 0 $FILTER\"" >> p8060cdn.ppd
-echo "削除した行:"; grep -E '^\*cups(Pre)?Filter2?:' orig.ppd
+echo "削除した行:"; grep -E '^\*(cups(Pre)?Filter2?|APDialogExtension):' orig.ppd
 
 echo "== [2/4] 変換テスト"
 echo "test page" > test.txt

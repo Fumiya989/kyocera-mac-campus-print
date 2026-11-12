@@ -36,6 +36,7 @@ The P8060cdn understands **PostScript** natively, and macOS's CUPS already has a
 2. **Make the student ID the job owner.** The print server matches jobs to accounts by user name. Without this, apps such as Preview or Chrome submit jobs as the Mac login name, and the job never shows up at the printer. Writing `User <student ID>` to `~/.cups/client.conf` makes every app on this Mac account submit as that user. It ends up in both the LPD control file (`P<user>`) and the PJL header (`@PJL SET USERNAME = "<user>"`).
 3. **Default to grayscale** by changing `*DefaultColorModel` to `Gray`. Optional, but it avoids accidental color prints.
 4. **Show Japanese file names correctly.** (v2) CUPS's `pstops` replaces non-ASCII characters in the PJL job name with `?`, so Japanese file names show up as boxes on the printer panel. The Japanese-market models expect Shift-JIS. A small filter, `sjis-jobname` (a shell script), is installed in `/Library/Printers/kyocera-p8060cdn-fix/` and registered in the PPD as a `*cupsFilter`. It rewrites only the `@PJL JOB NAME` line in Shift-JIS (also dropping prefixes such as "Microsoft Word - ") and passes the print data through unchanged.
+5. **Bring back Printer Features.** (v2.1) The PPD's `*APDialogExtension` points to Kyocera's print dialog plugin, `KfSummary.plugin`, which is Intel-only. Apple silicon Macs can't load it, so the Printer Features pane is missing from the print dialog. Removing this line too makes macOS show all PPD options in its standard Printer Features pane.
 
 You can check the result without printing:
 
@@ -65,6 +66,7 @@ After it finishes, quit (⌘Q) and reopen any app you print from. For color: Pri
 
 ## Changelog
 
+- **v2.1**: Fix the Printer Features pane missing from the print dialog on Apple silicon Macs (remove `*APDialogExtension`). Run `bash setup.sh` again.
 - **v2.0**: Fix Japanese file names showing as boxes on the printer panel (`sjis-jobname` filter). If you set up v1, get the new repository and run `bash setup.sh` again.
 - **v1.0**: First version. PPD without Kyocera's filters, student ID as user name, grayscale default.
 
